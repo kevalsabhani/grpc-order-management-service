@@ -39,6 +39,9 @@ func (s *orderManagementService) AddOrder(ctx context.Context, req *pb.Order) (*
 	// Set the Id field of the order
 	req.Id = id.String()
 	// Add the order to the map
+	if s.orders == nil {
+		s.orders = make(map[string]*pb.Order)
+	}
 	s.orders[req.Id] = req
 	// Return the Order ID as a proto message
 	return &pb.OrderID{Value: req.Id}, status.New(codes.OK, "").Err()
