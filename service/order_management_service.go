@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"strings"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	pb "github.com/kevalsabhani/grpc-order-management-service/service/ecommerce"
 	"google.golang.org/grpc/codes"
@@ -45,4 +49,21 @@ func (s *orderManagementService) AddOrder(ctx context.Context, req *pb.Order) (*
 	s.orders[req.Id] = req
 	// Return the Order ID as a proto message
 	return &pb.OrderID{Value: req.Id}, status.New(codes.OK, "").Err()
+}
+
+// SearchOrders returns a stream of orders that match the search query.
+func (s *orderManagementService) SearchOrder(searchQuery *wrappers.StringValue, stream pb.OrderManagement_SearchOrderServer) error {
+	for _, order := range s.orders {
+		for _, item := range order.Items {
+			if strings.Contains(item, searchQuery.Value) {
+				err := stream.Send(order)
+				if err != nil {
+					return fmt.Errorf("error sending response: %v", err)
+				}
+				log.Printf("Matching order found: %s", order.Id)
+				break
+			}
+		}
+	}
+	return nil
 }

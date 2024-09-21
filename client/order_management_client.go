@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
 	pb "github.com/kevalsabhani/grpc-order-management-service/client/ecommerce"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,7 +24,7 @@ func main() {
 	defer conn.Close()
 	c := pb.NewOrderManagementClient(conn)
 
-	// Add order
+	// Add order 1
 	order := pb.Order{
 		Items:       []string{"Google Pixel 3A", "Mac Book Pro", "Apple Watch S4"},
 		Destination: "San Jose, CA",
@@ -34,10 +36,35 @@ func main() {
 	}
 	log.Printf("Order added: %s", addResp.Value)
 
+	// Add order 2
+	order = pb.Order{
+		Items:       []string{"Google Pixel 5A", "Mac Book M3", "Apple Watch S7"},
+		Destination: "San Jose, CA",
+		Price:       2300.00,
+	}
+	addResp, err = c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order added: %s", addResp.Value)
+
 	// Get order
 	getResp, err := c.GetOrder(context.Background(), &pb.OrderID{Value: addResp.Value})
 	if err != nil {
 		log.Fatalf("Could not get order: %v", err)
 	}
 	log.Printf("Order retrieved: %s", getResp.String())
+
+	// Search orders
+	searchStream, err := c.SearchOrder(context.Background(), &wrappers.StringValue{Value: "Google"})
+	if err != nil {
+		log.Fatalf("Could not search order: %v", err)
+	}
+	for {
+		searchResp, err := searchStream.Recv()
+		if err == io.EOF {
+			break
+		}
+		log.Printf("Order found: %s", searchResp.String())
+	}
 }
