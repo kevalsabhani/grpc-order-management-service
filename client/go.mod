@@ -3,7 +3,6 @@ module github.com/kevalsabhani/grpc-order-management-service/client
 go 1.23.1
 
 require (
-	github.com/kevalsabhani/grpc-order-management-service/service v0.0.0-20240921075055-5e80f38d0e3a
 	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
 )
