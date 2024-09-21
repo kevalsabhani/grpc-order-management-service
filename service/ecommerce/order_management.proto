@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ecommerce;
 
-option go_package = "github.com/kevalsabhani/grpc-order-management-service/service"
+option go_package = "github.com/kevalsabhani/grpc-order-management-service/service";
 
 message Order {
   string id = 1;
@@ -17,5 +17,6 @@ message OrderID {
 }
 
 service OrderManagement {
-  rpc getOrder(OrderID) returns Order
+  rpc getOrder(OrderID) returns (Order);
+  rpc addOrder(Order) returns (OrderID);
 }
