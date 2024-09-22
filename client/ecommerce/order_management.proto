@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "google/protobuf/wrappers.proto";
-
 package ecommerce;
+
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/kevalsabhani/grpc-order-management-service/service";
 
@@ -18,9 +18,16 @@ message OrderID {
   string value = 1;
 }
 
+message CombinedShipment {
+  string id = 1;
+  string status = 2;
+  repeated Order orderList = 3;
+}
+
 service OrderManagement {
   rpc getOrder(OrderID) returns (Order);
   rpc addOrder(Order) returns (OrderID);
   rpc searchOrder(google.protobuf.StringValue) returns (stream Order);
   rpc updateOrder(stream Order) returns (google.protobuf.StringValue);
+  rpc processOrder(stream OrderID) returns (stream CombinedShipment);
 }

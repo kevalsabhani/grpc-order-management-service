@@ -48,6 +48,66 @@ func main() {
 		log.Fatalf("Could not add order: %v", err)
 	}
 	log.Printf("Order 2 added: %s", addResp2.Value)
+
+	// Add order 3
+	order = pb.Order{
+		Items:       []string{"Google Pixel 3A", "Mac Book Pro"},
+		Destination: "Mountain View, CA",
+		Price:       1800.00,
+	}
+	addResp3, err := c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order 3 added: %s", addResp3.Value)
+
+	// Add order 4
+	order = pb.Order{
+		Items:       []string{"Apple Watch S4"},
+		Destination: "San Jose, CA",
+		Price:       400.00,
+	}
+	addResp4, err := c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order 4 added: %s", addResp4.Value)
+
+	// Add order 5
+	order = pb.Order{
+		Items:       []string{"Google Home Mini", "Google Nest Hub"},
+		Destination: "Mountain View, CA",
+		Price:       400.00,
+	}
+	addResp5, err := c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order 5 added: %s", addResp5.Value)
+
+	// Add order 6
+	order = pb.Order{
+		Items:       []string{"Amazon Echo"},
+		Destination: "San Jose, CA",
+		Price:       30.00,
+	}
+	addResp6, err := c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order 6 added: %s", addResp6.Value)
+
+	// Add order 7
+	order = pb.Order{
+		Items:       []string{"Amazon Echo", "Apple iPhone XS"},
+		Destination: "Mountain View, CA",
+		Price:       300.00,
+	}
+	addResp7, err := c.AddOrder(context.Background(), &order)
+	if err != nil {
+		log.Fatalf("Could not add order: %v", err)
+	}
+	log.Printf("Order 7 added: %s", addResp7.Value)
 	log.Println()
 
 	// Get order
@@ -89,7 +149,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to send Order 1: %v", err)
 	}
-	log.Println()
 
 	// Updating order 2
 	updateOrder2 := pb.Order{
@@ -109,4 +168,67 @@ func main() {
 		log.Fatalf("failed to fetch resp: %v", err)
 	}
 	log.Println(updateResp.Value)
+	log.Println()
+
+	// Process orders
+	processStream, err := c.ProcessOrder(context.Background())
+	if err != nil {
+		log.Fatalf("could not process orders: %v", err)
+	}
+
+	// process order 1
+	if err = processStream.Send(addResp1); err != nil {
+		log.Fatalf("could not send order %v", addResp1.Value)
+	}
+
+	// process order 2
+	if err = processStream.Send(addResp2); err != nil {
+		log.Fatalf("could not send order %v", addResp2.Value)
+	}
+
+	ch := make(chan struct{})
+	go fetchStreamingResp(processStream, ch)
+
+	// process order 3
+	if err = processStream.Send(addResp3); err != nil {
+		log.Fatalf("could not send order %v", addResp3.Value)
+	}
+
+	// process order 4
+	if err = processStream.Send(addResp4); err != nil {
+		log.Fatalf("could not send order %v", addResp4.Value)
+	}
+
+	// process order 5
+	if err = processStream.Send(addResp5); err != nil {
+		log.Fatalf("could not send order %v", addResp5.Value)
+	}
+
+	// process order 6
+	if err = processStream.Send(addResp6); err != nil {
+		log.Fatalf("could not send order %v", addResp6.Value)
+	}
+
+	// process order 7
+	if err = processStream.Send(addResp7); err != nil {
+		log.Fatalf("could not send order %v", addResp7.Value)
+	}
+
+	if err = processStream.CloseSend(); err != nil {
+		log.Fatal(err)
+	}
+
+	<-ch
+}
+
+func fetchStreamingResp(processStream pb.OrderManagement_ProcessOrderClient, ch chan<- struct{}) {
+	for {
+		shipment, err := processStream.Recv()
+		if err == io.EOF || err != nil {
+			break
+		}
+
+		log.Printf("Shipment orders: %v", shipment)
+	}
+	ch <- struct{}{}
 }
