@@ -26,6 +26,7 @@ type OrderManagementClient interface {
 	GetOrder(ctx context.Context, in *OrderID, opts ...grpc.CallOption) (*Order, error)
 	AddOrder(ctx context.Context, in *Order, opts ...grpc.CallOption) (*OrderID, error)
 	SearchOrder(ctx context.Context, in *wrappers.StringValue, opts ...grpc.CallOption) (OrderManagement_SearchOrderClient, error)
+	UpdateOrder(ctx context.Context, opts ...grpc.CallOption) (OrderManagement_UpdateOrderClient, error)
 }
 
 type orderManagementClient struct {
@@ -86,6 +87,40 @@ func (x *orderManagementSearchOrderClient) Recv() (*Order, error) {
 	return m, nil
 }
 
+func (c *orderManagementClient) UpdateOrder(ctx context.Context, opts ...grpc.CallOption) (OrderManagement_UpdateOrderClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OrderManagement_ServiceDesc.Streams[1], "/ecommerce.OrderManagement/updateOrder", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &orderManagementUpdateOrderClient{stream}
+	return x, nil
+}
+
+type OrderManagement_UpdateOrderClient interface {
+	Send(*Order) error
+	CloseAndRecv() (*wrappers.StringValue, error)
+	grpc.ClientStream
+}
+
+type orderManagementUpdateOrderClient struct {
+	grpc.ClientStream
+}
+
+func (x *orderManagementUpdateOrderClient) Send(m *Order) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *orderManagementUpdateOrderClient) CloseAndRecv() (*wrappers.StringValue, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(wrappers.StringValue)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // OrderManagementServer is the server API for OrderManagement service.
 // All implementations must embed UnimplementedOrderManagementServer
 // for forward compatibility
@@ -93,6 +128,7 @@ type OrderManagementServer interface {
 	GetOrder(context.Context, *OrderID) (*Order, error)
 	AddOrder(context.Context, *Order) (*OrderID, error)
 	SearchOrder(*wrappers.StringValue, OrderManagement_SearchOrderServer) error
+	UpdateOrder(OrderManagement_UpdateOrderServer) error
 	mustEmbedUnimplementedOrderManagementServer()
 }
 
@@ -108,6 +144,9 @@ func (UnimplementedOrderManagementServer) AddOrder(context.Context, *Order) (*Or
 }
 func (UnimplementedOrderManagementServer) SearchOrder(*wrappers.StringValue, OrderManagement_SearchOrderServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchOrder not implemented")
+}
+func (UnimplementedOrderManagementServer) UpdateOrder(OrderManagement_UpdateOrderServer) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateOrder not implemented")
 }
 func (UnimplementedOrderManagementServer) mustEmbedUnimplementedOrderManagementServer() {}
 
@@ -179,6 +218,32 @@ func (x *orderManagementSearchOrderServer) Send(m *Order) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _OrderManagement_UpdateOrder_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(OrderManagementServer).UpdateOrder(&orderManagementUpdateOrderServer{stream})
+}
+
+type OrderManagement_UpdateOrderServer interface {
+	SendAndClose(*wrappers.StringValue) error
+	Recv() (*Order, error)
+	grpc.ServerStream
+}
+
+type orderManagementUpdateOrderServer struct {
+	grpc.ServerStream
+}
+
+func (x *orderManagementUpdateOrderServer) SendAndClose(m *wrappers.StringValue) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *orderManagementUpdateOrderServer) Recv() (*Order, error) {
+	m := new(Order)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // OrderManagement_ServiceDesc is the grpc.ServiceDesc for OrderManagement service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +265,11 @@ var OrderManagement_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "searchOrder",
 			Handler:       _OrderManagement_SearchOrder_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "updateOrder",
+			Handler:       _OrderManagement_UpdateOrder_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "ecommerce/order_management.proto",

@@ -30,11 +30,12 @@ func main() {
 		Destination: "San Jose, CA",
 		Price:       2300.00,
 	}
-	addResp, err := c.AddOrder(context.Background(), &order)
+	addResp1, err := c.AddOrder(context.Background(), &order)
 	if err != nil {
 		log.Fatalf("Could not add order: %v", err)
 	}
-	log.Printf("Order added: %s", addResp.Value)
+	log.Printf("Order 1 added: %s", addResp1.Value)
+	log.Println()
 
 	// Add order 2
 	order = pb.Order{
@@ -42,18 +43,20 @@ func main() {
 		Destination: "San Jose, CA",
 		Price:       2300.00,
 	}
-	addResp, err = c.AddOrder(context.Background(), &order)
+	addResp2, err := c.AddOrder(context.Background(), &order)
 	if err != nil {
 		log.Fatalf("Could not add order: %v", err)
 	}
-	log.Printf("Order added: %s", addResp.Value)
+	log.Printf("Order 2 added: %s", addResp2.Value)
+	log.Println()
 
 	// Get order
-	getResp, err := c.GetOrder(context.Background(), &pb.OrderID{Value: addResp.Value})
+	getResp, err := c.GetOrder(context.Background(), &pb.OrderID{Value: addResp1.Value})
 	if err != nil {
 		log.Fatalf("Could not get order: %v", err)
 	}
 	log.Printf("Order retrieved: %s", getResp.String())
+	log.Println()
 
 	// Search orders
 	searchStream, err := c.SearchOrder(context.Background(), &wrappers.StringValue{Value: "Google"})
@@ -67,4 +70,43 @@ func main() {
 		}
 		log.Printf("Order found: %s", searchResp.String())
 	}
+	log.Println()
+
+	// Update orders
+	updateStream, err := c.UpdateOrder(context.Background())
+	if err != nil {
+		log.Fatalf("could not update orders: %v", err)
+	}
+
+	// Updating order 1
+	updateOrder1 := pb.Order{
+		Id:          addResp1.Value,
+		Items:       []string{"Motorola edge 50 fusion", "iPhone 16"},
+		Destination: "San Jose, CA",
+		Price:       2700.00,
+	}
+	err = updateStream.Send(&updateOrder1)
+	if err != nil {
+		log.Fatalf("failed to send Order 1: %v", err)
+	}
+	log.Println()
+
+	// Updating order 2
+	updateOrder2 := pb.Order{
+		Id:          addResp2.Value,
+		Items:       []string{"Google pixel 9"},
+		Destination: "San Jose, CA",
+		Price:       500.00,
+	}
+	err = updateStream.Send(&updateOrder2)
+	if err != nil {
+		log.Fatalf("failed to send Order 2: %v", err)
+	}
+	log.Println()
+
+	updateResp, err := updateStream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("failed to fetch resp: %v", err)
+	}
+	log.Println(updateResp.Value)
 }

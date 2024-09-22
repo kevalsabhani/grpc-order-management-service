@@ -22,4 +22,5 @@ service OrderManagement {
   rpc getOrder(OrderID) returns (Order);
   rpc addOrder(Order) returns (OrderID);
   rpc searchOrder(google.protobuf.StringValue) returns (stream Order);
+  rpc updateOrder(stream Order) returns (google.protobuf.StringValue);
 }
