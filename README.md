@@ -6,7 +6,7 @@ A gRPC service to manage orders.
 - [X] Unary RPC
 - [X] Server-streaming RPC
 - [X] Client-streaming RPC
-- [ ] Bidirectional-streaming RPC
+- [X] Bidirectional-streaming RPC
 
 ## How To Run Service
 - `cd` into `service`
