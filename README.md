@@ -2,6 +2,12 @@
 
 A gRPC service to manage orders.
 
+## gRPC communication patterns
+- [X] Unary RPC
+- [X] Server-streaming RPC
+- [X] Client-streaming RPC
+- [ ] Bidirectional-streaming RPC
+
 ## How To Run Service
 - `cd` into `service`
 - Run command `make service`
